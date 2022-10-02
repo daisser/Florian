@@ -1,0 +1,57 @@
+[gcode_macro LIGHT_ON]
+description: Toggle Light
+variable_state: 'on'
+variable_led_array = ['druckraum_leds'] 
+gcode:
+ SET_LED LED=druckraum_leds RED=0 GREEN=0 BLUE=0
+    {% for pixel in range(1, 28) %}
+        SET_LED LED=druckraum_leds RED=0.6 GREEN=0.6 BLUE=0.6 INDEX={pixel}
+        SET_LED LED=druckraum_leds RED=0.6 GREEN=0.6 BLUE=0.6 INDEX={28+pixel}
+        G4 P70
+    {% endfor %}
+  
+
+[gcode_macro LIGHT_OFF]
+description: Helper: Light off
+gcode:
+  SET_LED LED=sb_leds RED=0.0 GREEN=0.0 BLUE=0.0
+  SET_LED LED=druckraum_leds RED=0.0 GREEN=0.0 BLUE=0.0
+
+[delayed_gcode _CASE_LIGHT_BOOT_UP]
+initial_duration: 1
+gcode:
+  FADE_IN
+  status_standby
+
+[gcode_macro FADE_IN]
+variable_led_array = ['druckraum_leds']  
+gcode:
+  {% set TIME = params.R|default(60) %}
+  {% for fade in range(0, 11) %}
+    {% for name in led_array %}
+      SET_LED LED={name} GREEN={fade|float / 10.0} RED={fade|float / 10.0} BLUE={fade|float / 10.0} TRANSMIT=1
+    {% endfor %}
+    G4 P{TIME}
+  {% endfor %}
+
+
+[gcode_macro FADE_OUT]
+variable_led_array = ['druckraum_leds'] 
+gcode:
+  {% set TIME = params.R|default(60) %}
+  {% for fade in range(0, 11) %}
+    {% for name in led_array %}
+      SET_LED LED={name} GREEN={(10-fade)|float /10.0} RED={(10-fade)|float /10.0} BLUE={(10-fade)|float /10.0} TRANSMIT=1
+    {% endfor %}
+    G4 P{TIME}
+  {% endfor %}
+
+
+[gcode_macro FADEINGREEN]
+gcode:
+    SET_LED LED=druckraum_leds RED=0.6 GREEN=0.6 BLUE=0.6
+    {% for pixel in range(1,30) %}
+        SET_LED LED=druckraum_leds RED=0 GREEN=1 BLUE=0 INDEX={pixel}
+        SET_LED LED=druckraum_leds RED=0 GREEN=1 BLUE=0 INDEX={30+pixel}
+        G4 P70
+    {% endfor %}
